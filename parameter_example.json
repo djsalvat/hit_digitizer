@@ -1,0 +1,6 @@
+{
+    "frequency": 450,
+    "units": "MHz",
+    "pretrace_length": 16,
+    "trace_length": 96
+}
