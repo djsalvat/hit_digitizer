@@ -1,4 +1,4 @@
-CXXFLAGS = -std=c++1z -Wall
+CXXFLAGS = -std=c++17 -Wall
 
 JSON_INCLUDE="/N/u/dsalvat/Carbonate/tools/json/include/"
 

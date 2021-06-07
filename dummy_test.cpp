@@ -25,6 +25,7 @@ using Baselines = channel_baselines<sample>;
 using Waveform = waveform<sample>;
 using NoiseGenerator_t = NoiseGenerator<sample>;
 using Response_t = Response<simple_hit,sample>;
+using Event = event<sample>;
 
 class Gaussian
 {
@@ -51,8 +52,6 @@ void test_response(Waveform& wf,const HitList& hl)
 
 int main()
 {
-    HitList hl;
-    ChannelHits ch;
     Waveform wf(0.0,std::list<sample>(32,256));
     CrossTalker_t ct = [](ChannelHits& c){};
     Trigger_t tr = [](const HitList& h) -> bool {return true;};
@@ -72,12 +71,17 @@ int main()
     }
     cout << endl;
 
-    Baselines bl = {{0,256},{1,257},{2,320}};
+    Baselines bl = {{0,256},{1,160}};
 
     simple_hit h1 = {0.0,0.0};
     simple_hit h2 = {0.0,0.0};
     simple_hit h3 = {0.0,0.0};
-    HitList htest = {0.0,{h1,h2,h3}};
+    HitList hl1 = {10.3,{h1,h2,h3}};
+    simple_hit h4 = {0.0,0.0};
+    simple_hit h5 = {0.0,0.0};
+    simple_hit h6 = {0.0,0.0};
+    HitList hl2 = {17.9,{h4,h5,h6}};
+    ChannelHits ch = {{0,hl1},{1,hl2}};
 
     Waveformer<simple_hit,sample> WF(
                                      dp,
@@ -86,6 +90,21 @@ int main()
                                      g,
                                      ct
                                     );
+
+    Event evt = WF(ch);
+    for (auto& e : evt)
+    {
+        auto& c = e.first;
+        auto& wf = e.second;
+        auto& time = wf.first;
+        auto& samples = wf.second;
+        cout << c << " " << time;
+        for (auto& s : samples)
+        {
+            cout << " " << s;
+        }
+        cout << endl;
+    }
 
     return 0;
 }

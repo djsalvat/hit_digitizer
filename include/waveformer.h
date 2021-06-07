@@ -43,7 +43,7 @@ namespace waveformer
     //An event is a list of waveforms
     //referenced by channel
     template<typename sample>
-    using event = std::pair<int,waveform<sample> >;
+    using event = std::map<int,waveform<sample> >;
 
     typedef struct
     {
@@ -54,14 +54,6 @@ namespace waveformer
     } digitizer_parameters;
 
     digitizer_parameters get_digitizer_parameters(std::string filename);
-
-    class Test
-    {
-    public:
-        Test();
-       ~Test(){};
-    private:
-    };
 
     //Take the above ingredients,
     //wrap into a class.
@@ -76,10 +68,29 @@ namespace waveformer
                    channel_baselines<sample> bl,
                    Response<hit,sample> r,
                    NoiseGenerator<sample> ng,
-                   CrossTalker<hit> ct);
+                   CrossTalker<hit> ct)
+                   : params(p), baselines(bl),
+                     response(r), noise(ng),
+                     crosstalk(ct) {};
        ~Waveformer(){};
 
-       event<sample> operator()(channel_hits<hit> hits);
+        event<sample> operator()(channel_hits<hit> hits)
+        {
+            crosstalk(hits);
+
+            event<sample> e;
+            for (auto const& h : hits)
+            {
+                auto c = h.first;
+                auto hl = h.second; 
+
+                e[c] = create_waveform(hl.first,baselines[c]);
+                noise(e[c]);
+                response(e[c],hl);
+            }
+
+            return e;
+        };
     private:
         digitizer_parameters params;
         channel_baselines<sample> baselines;
@@ -87,7 +98,13 @@ namespace waveformer
         NoiseGenerator<sample> noise;
         CrossTalker<hit> crosstalk;
         //helper method to generate a blank waveform.
-        waveform<sample> create_waveform(double time,sample baseline);
+        waveform<sample> create_waveform(double time,sample baseline)
+        {
+            return waveform<sample>(
+                                    time,
+                                    std::list<sample>(params.trace_length,baseline)
+                                   );
+        };
     };
 }
 
