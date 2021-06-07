@@ -86,6 +86,6 @@ int main()
                                      g,
                                      ct
                                     );
-    
+
     return 0;
 }
