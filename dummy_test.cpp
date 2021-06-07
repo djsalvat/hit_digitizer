@@ -16,11 +16,12 @@ typedef struct
 } simple_hit;
 
 using HitList = hitlist<simple_hit>;
-using Channels = channels<simple_hit>;
+using ChannelHits = channel_hits<simple_hit>;
 using CrossTalker_t = CrossTalker<simple_hit>;
 using Trigger_t = HitTrigger<simple_hit>;
 
 using sample = unsigned short;
+using Baselines = channel_baselines<sample>;
 using Waveform = waveform<sample>;
 using NoiseGenerator_t = NoiseGenerator<sample>;
 using Response_t = Response<simple_hit,sample>;
@@ -29,37 +30,31 @@ class Gaussian
 {
     public:
         Gaussian(sample s, sample b, digitizer_parameters dp)
-                     : sigma(s),baseline(b),dig_params(dp),
+                     : sigma(s),dig_params(dp),
                        generator(std::chrono::system_clock::now().time_since_epoch().count()),
-                       distribution(float(baseline),float(sigma))
+                       distribution(0.0,float(sigma))
                        {};
-        Waveform operator()(double t)
+        void operator()(Waveform& wf)
         {
-            Waveform w(t,dig_params.trace_length);
-            for (auto& s : w.second) s = distribution(generator);
-            return w;
+            for (auto& s : wf.second) s += distribution(generator);
         };
     private:
         sample sigma;
-        sample baseline;
         digitizer_parameters dig_params;
         std::default_random_engine generator;
         std::normal_distribution<float> distribution;
 };
 
-Waveform test_response(NoiseGenerator_t* ng,
-                       HitList& hl)
+void test_response(Waveform& wf,const HitList& hl)
 {
-    auto wf = (*ng)(2600.0);
-    return wf;
 }
 
 int main()
 {
     HitList hl;
-    Channels ch;
-    Waveform wf;
-    CrossTalker_t ct = [](Channels& c){return;};
+    ChannelHits ch;
+    Waveform wf(0.0,std::list<sample>(32,256));
+    CrossTalker_t ct = [](ChannelHits& c){};
     Trigger_t tr = [](const HitList& h) -> bool {return true;};
 
     digitizer_parameters dp = get_digitizer_parameters("parameter_example.json");
@@ -70,12 +65,27 @@ int main()
     Gaussian g(2,256,dp);
     NoiseGenerator_t ng = g;
     Response_t r = test_response;
-    Waveform w = g(1000.0);
-    for (auto& s : w.second)
+    g(wf);
+    for (auto& s : wf.second)
     {
         cout << s << " ";
     }
     cout << endl;
 
+    Baselines bl = {{0,256},{1,257},{2,320}};
+
+    simple_hit h1 = {0.0,0.0};
+    simple_hit h2 = {0.0,0.0};
+    simple_hit h3 = {0.0,0.0};
+    HitList htest = {0.0,{h1,h2,h3}};
+
+    Waveformer<simple_hit,sample> WF(
+                                     dp,
+                                     bl,
+                                     r,
+                                     g,
+                                     ct
+                                    );
+    
     return 0;
 }
