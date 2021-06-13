@@ -1,11 +1,11 @@
-#include "waveformer.h"
+#include "hit_digitizer.h"
 #include "nlohmann/json.hpp"
 #include <string>
 #include <fstream>
 
 using json = nlohmann::json;
 
-namespace waveformer
+namespace hit_digitizer
 {
     digitizer_parameters get_digitizer_parameters(std::string filename)
     {

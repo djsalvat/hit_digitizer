@@ -1,4 +1,4 @@
-#include "waveformer.h"
+#include "hit_digitizer.h"
 #include <iostream>
 #include <functional>
 #include <iostream>
@@ -6,7 +6,7 @@
 #include <random>
 #include <algorithm>
 
-using namespace waveformer;
+using namespace hit_digitizer;
 using namespace std;
 
 typedef struct
@@ -15,16 +15,16 @@ typedef struct
     double time;
 } simple_hit;
 
-using HitList = hitlist<simple_hit>;
+using HitList = hit_list<simple_hit>;
 using ChannelHits = channel_hits<simple_hit>;
-using CrossTalker_t = CrossTalker<simple_hit>;
-using Trigger_t = HitTrigger<simple_hit>;
+using CrossTalk = cross_talk<simple_hit>;
+using Trigger = hit_trigger<simple_hit>;
 
 using sample = unsigned short;
 using Baselines = channel_baselines<sample>;
 using Waveform = waveform<sample>;
-using NoiseGenerator_t = NoiseGenerator<sample>;
-using Response_t = Response<simple_hit,sample>;
+using NoiseGenerator = noise_generator<sample>;
+using Response = response_function<simple_hit,sample>;
 using Event = event<sample>;
 
 class Gaussian
@@ -52,9 +52,9 @@ void test_response(Waveform& wf,const HitList& hl)
 
 int main()
 {
-    Waveform wf(0.0,std::list<sample>(32,256));
-    CrossTalker_t ct = [](ChannelHits& c){};
-    Trigger_t tr = [](const HitList& h) -> bool {return true;};
+    Waveform wf(0.0,std::vector<sample>(32,256));
+    CrossTalk ct = [](ChannelHits& c){};
+    Trigger tr = [](const HitList& h) -> bool {return true;};
 
     digitizer_parameters dp = get_digitizer_parameters("parameter_example.json");
     cout << "frequency: " << dp.frequency       << " " << dp.units << endl
@@ -62,8 +62,8 @@ int main()
          << "trace:     " << dp.trace_length                       << endl;
 
     Gaussian g(2,256,dp);
-    NoiseGenerator_t ng = g;
-    Response_t r = test_response;
+    NoiseGenerator ng = g;
+    Response r = test_response;
     g(wf);
     for (auto& s : wf.second)
     {
@@ -83,7 +83,7 @@ int main()
     HitList hl2 = {17.9,{h4,h5,h6}};
     ChannelHits ch = {{0,hl1},{1,hl2}};
 
-    Waveformer<simple_hit,sample> WF(
+    HitDigitizer<simple_hit,sample> WF(
                                      dp,
                                      bl,
                                      r,
