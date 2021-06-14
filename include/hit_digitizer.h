@@ -13,11 +13,11 @@ namespace hit_digitizer
     //(energy, time, PSD parameter, etc...)
     //which is needed to simulate an individual waveform
     template<typename hit>
-    using hit_list = std::pair<double,std::list<hit> >;
+    using hit_list = std::pair<double,std::list<hit>>;
     //For a given event, which "channel hits" (indexed by an integer)
     //contained which hits
     template<typename hit>
-    using channel_hits = std::map< int, hit_list<hit> >;
+    using channel_hits = std::map< int, hit_list<hit>>;
     //A cross-talk algorithm takes channel hits,
     //and uses the indices in some way
     //to affect hits in other channels
@@ -29,7 +29,7 @@ namespace hit_digitizer
     using hit_trigger = std::function<bool(const hit_list<hit>&)>;
     //A waveform is a global trigger time and vector of samples
     template<typename sample>
-    using waveform = std::pair<double, std::vector<sample> >;
+    using waveform = std::pair<double, std::vector<sample>>;
     //each channel can have a baseline offset
     template<typename sample>
     using channel_baselines = std::map<int,sample>;
@@ -43,7 +43,7 @@ namespace hit_digitizer
     //An event is a list of waveforms
     //referenced by channel
     template<typename sample>
-    using event = std::map<int,waveform<sample> >;
+    using event = std::map<int,waveform<sample>>;
 
     typedef struct
     {
