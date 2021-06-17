@@ -6,6 +6,8 @@
 #include <map>
 #include <functional>
 #include <utility>
+#include <random>
+#include <chrono>
 
 namespace hit_digitizer
 {
@@ -106,6 +108,31 @@ namespace hit_digitizer
                                    );
         };
     };
+
+    namespace noise_generators
+    {
+        //Simple gauss noise with variance sigma.
+        template<typename sample>
+        class Gaussian
+        {
+            public:
+                Gaussian(sample s, digitizer_parameters dp)
+                             : sigma(s),dig_params(dp),
+                               generator(std::chrono::system_clock::now().time_since_epoch().count()),
+                               distribution(0.0,float(sigma))
+                               {};
+                void operator()(waveform<sample>& wf)
+                {
+                    for (auto& s : wf.second) s += distribution(generator);
+                };
+            private:
+                sample sigma;
+                digitizer_parameters dig_params;
+                std::default_random_engine generator;
+                std::normal_distribution<float> distribution;
+        };
+        
+    }
 }
 
 #endif
